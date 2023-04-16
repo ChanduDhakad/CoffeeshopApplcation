@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Page</title>
+
+    <!-- <link rel="stylesheet" href="index.css"> -->
+
+    <style>
+      /* All Your css for Home page goes here  */
+
+      #menu-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        width: 80%;
+        margin: auto;
+        /* text-align: center; */
+        grid-gap: 20px;
+
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+
+      .item {
+        box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+      }
+      h3 {
+        margin: -2px 0px;
+      }
+      h3 + h3 {
+        border: 1px solid red;
+
+        padding-left: 20px;
+      }
+      h3 + button {
+        border: none;
+        font-size: 22px;
+        background-color: #2bb6f6;
+        color: white;
+        cursor: pointer;
+        border-radius: 10px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        text-align: center;
+      }
+      img {
+        width: 100%;
+        height: 60%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="nav">
+      <h1>Web Coffee Shop Menu</h1>
+      <a href="./index.html">Home</a>
+      <a href="./order.html">Ordered</a>
+    </div>
+    <div id="filter">
+      <input type="number" id="lower" />
+      <input type="number" id="upper" />
+      <button id="filter-btn">Filter</button>
+    </div>
+    <select id="sort">
+      <option value="">Sort By Price</option>
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+    <h1 id="alert"></h1>
+    <div id="menu-container">
+      <!-- Here Append All the Items  -->
+    </div>
+  </body>
+  <script>
+    // All your JS code for Home Page goes here
+
+    const url = `https://dbioz2ek0e.execute-api.ap-south-1.amazonaws.com/mockapi/get-coffee`;
+
+    let productData;
+    async function getItemData(sortBy = "", orderBy = "") {
+      let res;
+      if (sortBy != "" && orderBy != "") {
+        res = await fetch(url + "?sort=" + sortBy + "&order=" + orderBy);
+      } else {
+        res = await fetch(url);
+      }
+      let data = await res.json();
+      productData = data.data;
+      displayItems(data.data);
+    }
+
+    getItemData();
+
+    let menuContainer = document.querySelector("#menu-container");
+
+    function displayItems(data) {
+      menuContainer.innerHTML = null;
+
+      data.forEach((el) => {
+        let div = document.createElement("div");
+
+        let img = document.createElement("img");
+        img.src = el.image;
+
+        let title = document.createElement("h2");
+        title.innerText = el.title;
+
+        let ingredients = document.createElement("div");
+        el.ingredients.forEach((e) => {
+          let p = document.createElement("p");
+          p.innerText = e;
+          ingredients.append(p);
+        });
+
+        let desc = document.createElement("div");
+        desc.innerText = el.description;
+
+        let price = document.createElement("p");
+        price.innerHTML = "<b>₹" + el.price + "</b>";
+
+        let btn = document.createElement("button");
+        btn.innerText = "Buy";
+        btn.addEventListener("click", () => {
+          buyItems(el);
+        });
+
+        div.append(img, title, ingredients, desc, price, btn);
+        menuContainer.append(div);
+      });
+    }
+
+    let sortContent = document.getElementById("sort");
+    sortContent.addEventListener("change", function (e) {
+      if (e.target.value !== "") {
+        getItemData("price", e.target.value);
+      } else {
+        getItemData();
+      }
+    });
+
+    let filterBtn = document.querySelector("#filter-btn");
+    filterBtn.addEventListener("click", () => {
+      let lowerVal = document.querySelector("#lower").value;
+      let upprVal = document.querySelector("#upper").value;
+      if (productData !== undefined) {
+        let newData = productData.filter(
+          (el) => el.price >= lowerVal && el.price <= upprVal
+        );
+        console.log("newData:", newData);
+        displayItems(newData);
+      }
+    });
+  </script>
+</html>
